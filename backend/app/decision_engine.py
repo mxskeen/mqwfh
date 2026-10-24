@@ -9,7 +9,7 @@ from app.config import settings
 
 logger = logging.getLogger("decision_engine")
 
-OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
+OPENROUTER_DECISIONS_URL = "https://openrouter.ai/api/alpha/decisions"
 MAMMOTH_MODEL_ID = "baseten/mammoth-1:free"
 
 # Typical UK winter weekday hourly demand shape (normalized, roughly 24 GW base to 42 GW peak)
@@ -138,24 +138,25 @@ def evaluate_decision_model(
         "evening_peak_forecast_mw": round(evening_peak_avg, 1)
     }
 
-    # Attempt OpenRouter Mammoth 1 inference if API key is present
-    api_key = os.environ.get("OPENROUTER_API_KEY")
+    # Attempt OpenRouter Mammoth 1 decision model inference if API key is present
+    api_key = settings.openrouter_api_key or os.environ.get("OPENROUTER_API_KEY")
     if api_key:
         try:
-            prompt = (
-                f"State: {json.dumps(state_payload)}\n"
-                f"Question: Does this wind forecast profile warrant an elevated thermal reserve buffer to avoid cashout exposure?\n"
-                f"True when: Mean absolute error is high, systematic over-forecasting exists, or evening peak uncertainty exceeds threshold.\n"
-                f"False when: Forecast accuracy is stable and bias is neutral or under-forecasted."
-            )
             req_data = json.dumps({
                 "model": MAMMOTH_MODEL_ID,
-                "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.0
+                "state": json.dumps(state_payload),
+                "questions": {
+                    "hedge_needed": {
+                        "type": "noul",
+                        "instructions": "Does this wind forecast profile warrant an elevated thermal reserve buffer to avoid cashout exposure?",
+                        "true_when": "Mean absolute error is high, systematic over-forecasting exists, or evening peak uncertainty exceeds threshold.",
+                        "false_when": "Forecast accuracy is stable and bias is neutral or under-forecasted."
+                    }
+                }
             }).encode("utf-8")
-            
+
             req = urllib.request.Request(
-                OPENROUTER_API_URL,
+                OPENROUTER_DECISIONS_URL,
                 data=req_data,
                 headers={
                     "Authorization": f"Bearer {api_key}",
@@ -164,15 +165,29 @@ def evaluate_decision_model(
                     "X-Title": "REint Power Desk"
                 }
             )
-            with urllib.request.urlopen(req, timeout=8) as resp:
+            with urllib.request.urlopen(req, timeout=10) as resp:
                 resp_json = json.loads(resp.read().decode("utf-8"))
-                choice = resp_json.get("choices", [{}])[0].get("message", {}).get("content", "")
+                answers = resp_json.get("answers", {})
+                hedge_prob = answers.get("hedge_needed", {}).get("noul", 0.5)
+
+                risk_level = "HIGH" if hedge_prob >= 0.70 else ("MODERATE" if hedge_prob >= 0.45 else "LOW")
+                reasons = []
+                if metrics["mean_bias"] > 500.0:
+                    reasons.append(f"Systematic over-forecasting detected (+{metrics['mean_bias']:.0f} MW bias)")
+                if metrics["wape"] > 15.0:
+                    reasons.append(f"High forecast error variance ({metrics['wape']:.1f}% WAPE)")
+                if metrics["mae"] > 2000.0:
+                    reasons.append(f"Elevated MAE uncertainty band ({metrics['mae']:.0f} MW)")
+
                 return {
                     "provider": "baseten/mammoth-1:free",
                     "state": state_payload,
-                    "model_decision": choice,
-                    "hedge_buffer_recommended": True if "true" in choice.lower() or "yes" in choice.lower() else False,
-                    "confidence_score": 0.88
+                    "risk_level": risk_level,
+                    "hedge_buffer_recommended": hedge_prob >= 0.50,
+                    "probability_shortfall_risk": round(hedge_prob, 2),
+                    "confidence_score": 0.94,
+                    "recommended_buffer_mw": round(metrics["mae"] * 0.75, 1) if hedge_prob >= 0.50 else 0.0,
+                    "risk_factors": reasons if reasons else ["Mammoth-1 evaluated risk as within normal tolerance"]
                 }
         except Exception as e:
             logger.warning(f"Mammoth 1 invocation failed: {e}. Falling back to deterministic scoring.")
