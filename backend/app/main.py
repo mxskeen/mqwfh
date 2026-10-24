@@ -18,16 +18,20 @@ logger = logging.getLogger("main")
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Initializing UK Wind Power Trading Backend")
-    db_file = Path(settings.db_path)
-    if not db_file.exists():
-        logger.info(f"Database file not found at {settings.db_path}, initializing schema")
-        init_db()
-    else:
-        init_db()
-        with get_db() as conn:
+    init_db()
+    
+    with get_db() as conn:
+        actuals = conn.execute("SELECT count(*) FROM actual_generation").fetchone()[0]
+        forecasts = conn.execute("SELECT count(*) FROM forecast_generation").fetchone()[0]
+        logger.info(f"Connected to database: {actuals} actuals, {forecasts} forecasts available")
+
+        if actuals == 0:
+            logger.info("Database is empty. Running initial Elexon January 2026 ingestion pipeline...")
+            from app.ingest import run_pipeline
+            run_pipeline()
             actuals = conn.execute("SELECT count(*) FROM actual_generation").fetchone()[0]
             forecasts = conn.execute("SELECT count(*) FROM forecast_generation").fetchone()[0]
-            logger.info(f"Connected to database: {actuals} actuals, {forecasts} forecasts available")
+            logger.info(f"Ingestion complete: {actuals} actuals, {forecasts} forecasts available")
 
     yield
     logger.info("Shutting down backend server")

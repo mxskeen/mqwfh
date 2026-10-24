@@ -161,8 +161,8 @@ def evaluate_decision_model(
                 headers={
                     "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json",
-                    "HTTP-Referer": "https://reint-power-desk.local",
-                    "X-Title": "REint Power Desk"
+                    "HTTP-Referer": "https://power-desk.local",
+                    "X-Title": "PowerDesk Dispatch"
                 }
             )
             with urllib.request.urlopen(req, timeout=10) as resp:
