@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+**/.venv/
+.env
+.env.*
+!.env.example
+*.log
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Node / Frontend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.dist
+dist/
+build/
+.vite/
+.eslintcache
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Assignment / Local docs
+*.docx
+
+# SQLite / Local Databases
+*.db
+*.sqlite
+*.sqlite3
+backend/data/*.db
+
