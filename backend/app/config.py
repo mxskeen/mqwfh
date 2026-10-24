@@ -1,3 +1,4 @@
+from typing import Optional
 from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -7,6 +8,7 @@ class Settings(BaseSettings):
     elexon_base_url: str = "https://data.elexon.co.uk/bmrs/api/v1"
     db_path: str = str(BASE_DIR / "data" / "elexon_wind.db")
     default_decision_time_utc: str = "11:00:00"
+    openrouter_api_key: Optional[str] = None
 
     model_config = SettingsConfigDict(
         env_file=(".env", str(BASE_DIR.parent / ".env")),
