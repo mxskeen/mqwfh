@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, memo } from 'react';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -18,7 +18,7 @@ interface TimeseriesChartProps {
   cutoffTime: string;
 }
 
-export const TimeseriesChart = ({
+export const TimeseriesChart = memo(({
   data,
   targetDate,
   cutoffTime,
@@ -27,15 +27,18 @@ export const TimeseriesChart = ({
   const [showForecast, setShowForecast] = useState(true);
   const [showErrorSpread, setShowErrorSpread] = useState(true);
 
-  const chartData = data.map((d) => ({
-    sp: `SP${d.settlement_period.toString().padStart(2, '0')}`,
-    spNumber: d.settlement_period,
-    time: d.start_time.substring(11, 16),
-    actual_mw: d.actual_mw,
-    forecasted_mw: d.forecasted_mw,
-    error_mw: d.forecast_error,
-    publish_time: d.publish_time,
-  }));
+  // Memoize chart data to avoid recalculations on re-render
+  const chartData = useMemo(() => {
+    return data.map((d) => ({
+      sp: `SP${d.settlement_period.toString().padStart(2, '0')}`,
+      spNumber: d.settlement_period,
+      time: d.start_time.substring(11, 16),
+      actual_mw: d.actual_mw,
+      forecasted_mw: d.forecasted_mw,
+      error_mw: d.forecast_error,
+      publish_time: d.publish_time,
+    }));
+  }, [data]);
 
   return (
     <div className="bg-white p-6 rounded border border-[#eeebe2] space-y-4">
@@ -87,7 +90,7 @@ export const TimeseriesChart = ({
         </div>
       </div>
 
-      {/* Chart Canvas with breathing room */}
+      {/* Chart Canvas with instant rendering (no animation lag) */}
       <div className="h-80 w-full pt-2">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart
@@ -103,6 +106,7 @@ export const TimeseriesChart = ({
               fill="#fef3c7"
               fillOpacity={0.4}
               yAxisId="mw"
+              isFront={false}
             />
 
             <XAxis
@@ -128,6 +132,7 @@ export const TimeseriesChart = ({
               tickFormatter={(v) => `${v > 0 ? '+' : ''}${v}`}
             />
             <Tooltip
+              isAnimationActive={false}
               content={({ active, payload }) => {
                 if (!active || !payload || !payload.length) return null;
                 const d = payload[0].payload;
@@ -174,6 +179,7 @@ export const TimeseriesChart = ({
                 fill="#d97706"
                 fillOpacity={0.25}
                 barSize={6}
+                isAnimationActive={false}
               />
             )}
             {showActual && (
@@ -186,6 +192,7 @@ export const TimeseriesChart = ({
                 strokeWidth={2}
                 dot={false}
                 activeDot={{ r: 4, fill: '#1b3a2f' }}
+                isAnimationActive={false}
               />
             )}
             {showForecast && (
@@ -199,6 +206,7 @@ export const TimeseriesChart = ({
                 strokeDasharray="4 4"
                 dot={false}
                 activeDot={{ r: 4, fill: '#64748b' }}
+                isAnimationActive={false}
               />
             )}
           </ComposedChart>
@@ -206,4 +214,4 @@ export const TimeseriesChart = ({
       </div>
     </div>
   );
-};
+});

@@ -60,7 +60,7 @@ export const MonthlyAnalysis: React.FC<MonthlyAnalysisProps> = ({
 
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
+            <LineChart data={chartData} margin={{ top: 10, right: 25, left: -5, bottom: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1ede6" vertical={false} />
               <XAxis
                 dataKey="date"
@@ -68,6 +68,7 @@ export const MonthlyAnalysis: React.FC<MonthlyAnalysisProps> = ({
                 interval={2}
                 tickLine={false}
                 axisLine={{ stroke: '#e5e1d7' }}
+                padding={{ left: 10, right: 15 }}
               />
               <YAxis
                 tick={{ fontSize: 10, fill: '#78716c', fontFamily: 'monospace' }}
@@ -76,14 +77,15 @@ export const MonthlyAnalysis: React.FC<MonthlyAnalysisProps> = ({
                 tickFormatter={(v) => `${(v / 1000).toFixed(1)}k`}
               />
               <Tooltip
+                isAnimationActive={false}
                 content={({ active, payload }) => {
                   if (!active || !payload || !payload.length) return null;
                   const d = payload[0].payload;
                   return (
-                    <div className="bg-white border border-[#eeebe2] p-2.5 rounded text-xs space-y-1">
-                      <div className="font-mono font-medium text-stone-900">{d.fullDate}</div>
-                      <div className="font-mono text-[#1b3a2f]">MAE: {d.mae_mw.toLocaleString()} MW</div>
-                      <div className="font-mono text-amber-700">Mean Bias: +{d.bias_mw.toLocaleString()} MW</div>
+                    <div className="bg-white border border-[#eeebe2] p-2.5 rounded text-xs space-y-1 font-mono">
+                      <div className="font-bold text-stone-900">{d.fullDate}</div>
+                      <div className="text-[#1b3a2f]">MAE: {d.mae_mw.toLocaleString()} MW</div>
+                      <div className="text-amber-700">Mean Bias: +{d.bias_mw.toLocaleString()} MW</div>
                       <div className="text-[10px] text-stone-400 mt-1">Click to inspect delivery day</div>
                     </div>
                   );
@@ -97,6 +99,7 @@ export const MonthlyAnalysis: React.FC<MonthlyAnalysisProps> = ({
                 strokeWidth={2}
                 dot={{ r: 3, fill: '#1b3a2f' }}
                 activeDot={{ r: 5 }}
+                isAnimationActive={false}
               />
               <Line
                 type="monotone"
@@ -106,6 +109,7 @@ export const MonthlyAnalysis: React.FC<MonthlyAnalysisProps> = ({
                 strokeWidth={1.5}
                 strokeDasharray="3 3"
                 dot={false}
+                isAnimationActive={false}
               />
             </LineChart>
           </ResponsiveContainer>

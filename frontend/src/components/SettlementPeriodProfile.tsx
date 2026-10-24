@@ -140,8 +140,8 @@ export const SettlementPeriodProfile = ({
                   );
                 }}
               />
-              <Bar dataKey="mae_mw" fill="#1b3a2f" fillOpacity={0.85} barSize={6} radius={[1, 1, 0, 0]} />
-              <Bar dataKey="avg_error_mw" fill="#d97706" fillOpacity={0.75} barSize={6} radius={[1, 1, 0, 0]} />
+              <Bar dataKey="mae_mw" fill="#1b3a2f" fillOpacity={0.85} barSize={6} radius={[1, 1, 0, 0]} isAnimationActive={false} />
+              <Bar dataKey="avg_error_mw" fill="#d97706" fillOpacity={0.75} barSize={6} radius={[1, 1, 0, 0]} isAnimationActive={false} />
             </BarChart>
           </ResponsiveContainer>
         </div>
