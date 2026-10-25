@@ -99,10 +99,10 @@ export const TimeseriesChart = memo(({
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#f1ede6" vertical={false} />
 
-            {/* Subtle UK Evening Peak Highlight Area (16:00 to 19:00 UTC) */}
+            {/* Subtle UK Evening Peak Highlight Area (SPs 33-38: 16:00 to 18:30 start time) */}
             <ReferenceArea
               x1="16:00"
-              x2="19:00"
+              x2="18:30"
               fill="#fef3c7"
               fillOpacity={0.4}
               yAxisId="mw"

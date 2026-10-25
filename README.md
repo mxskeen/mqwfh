@@ -5,7 +5,7 @@ Full-stack quantitative analytics and day-ahead procurement decision support sys
 ## Live Deployments
 
 - Frontend (Vercel): [https://mqwfh.vercel.app](https://mqwfh.vercel.app)
-- Backend API (Render): [https://mqwfh-api.onrender.com](https://mqwfh-api.onrender.com)
+- Backend API (Render): [https://mqwfh-api.onrender.com](https://mqwfh-api.onrender.com) *(Note: Render free tier spins up after ~40s on cold start)*
 - Interactive API Docs (Swagger): [https://mqwfh-api.onrender.com/docs](https://mqwfh-api.onrender.com/docs)
 
 ## Key Capabilities
